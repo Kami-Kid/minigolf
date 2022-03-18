@@ -123,19 +123,22 @@ function fillCircle(pos, rad) {
 function startTrig() {
     trigstart[0] = event.clientX
     trigstart[1] = event.clientY
+
+    window.addEventListener("mousemove", finishTrig)
 }
 
 function finishTrig() {
-    //make a triangle that is delta x across and delta y down and find the hypotenuse saying triangle a B and c for the sides
+    redraw()
+        //make a triangle that is delta x across and delta y down and find the hypotenuse saying triangle a B and c for the sides
     triangleA = trigstart[0] - event.clientX
     triangleB = trigstart[1] - event.clientY
     triangleC = Math.pow((Math.pow(triangleA, 2), Math.pow(triangleB, 2), 0.5))
         //doing (a^2 + b^2) to the 1/2 power for square root
 
     ctx.beginPath()
-    ctx.moveTo(trigstart[0], trigstart[1])
-    ctx.lineTo(trigstart[0] + triangleA, trigstart[1])
-    ctx.lineTo(trigstart[0] + triangleA, trigstart[1] + triangleB)
+    ctx.moveTo(trigstart[0] + triangleA, trigstart[1] + triangleB)
+        //ctx.lineTo(trigstart[0] + triangleA, trigstart[1])
+        //ctx.lineTo(trigstart[0] + triangleA, trigstart[1] + triangleB)
     ctx.lineTo(trigstart[0], trigstart[1])
     ctx.stroke()
 }
@@ -144,3 +147,8 @@ function load() {
     ballcurr = ball[level]
 }
 load()
+
+function redraw() {
+    ctx.clearRect(0, 0, 1000, 700)
+    fillCircle(ballcurr, holerad)
+}
