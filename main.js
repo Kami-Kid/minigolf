@@ -259,10 +259,35 @@ function wallbounds() {
             vertices.push(Math.pow(Math.pow(vertex[0] - xmove, 2) + Math.pow(vertex[1] - ymove, 2), 0.5))
         }
 
-        smol = vertices.findIndex(function(a) { return a == Math.min([vertices[0], vertices[1], vertices[2], vertices[3]]) })
+        smol = vertices.splice(vertices.findIndex(function(a) { return a == Math.min(vertices[0], vertices[1], vertices[2], vertices[3]) }), 1)
+        smol1 = vertices.splice(vertices.findIndex(function(a) { return a == Math.min(vertices[0], vertices[1], vertices[2]) }), 1)
+
+        corner1 = 0
+        corner2 = 0
+
+        /*
+            0--------1
+            |        |
+            |        |
+            2--------3
+        */
+
+        smol == Wx ? corner1 = 0 : smol == Wx + Ww ? corner1 = 1 : smol == Wy ? corner1 = 2 : corner1 = 3
+        smol1 == Wx ? corner2 = 0 : smol1 == Wx + Ww ? corner2 = 1 : smol1 == Wy ? corner2 = 2 : corner2 = 3
 
 
         if (xmove + holerad >= Wx && ymove + holerad >= Wy && xmove - holerad < Wx + Ww && ymove - holerad <= Wy + Wh) {
+
+            switch (corner1 + corner2) {
+                case 1:
+                    yvel *= -1
+                case 2:
+                    xvel *= -1
+                case 5:
+                    yvel *= -1
+                case 4:
+                    xvel *= -1
+            }
 
             fix = 1
             console.log("hiii")
