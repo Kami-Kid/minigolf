@@ -2,9 +2,10 @@ canvas = document.getElementById("canvas")
 ctx = canvas.getContext("2d")
 
 const friction = 2;
-const levelnum = 11;
+const levelnum = 6;
 const holerad = 10;
-let level = 0;
+let level;
+location.search == "" ? level = 0 : level = location.search[5]
 let ballvel = [0, 0];
 let ball = [];
 let ballcurr = [];
@@ -12,6 +13,7 @@ let hole = [];
 let walls = [];
 let sand = [];
 let death = [];
+let sandy = false
 
 let getmousedown;
 
@@ -49,10 +51,14 @@ let levels = [
         []
     ],
     [
-        [10, 20],
+        [10, 15],
         [300, 300],
-        [],
-        [],
+        [
+            [0, 30, 500, 40]
+        ],
+        [
+            [0, 0, 900, 100]
+        ],
         []
     ],
     [
@@ -60,49 +66,44 @@ let levels = [
         [300, 300],
         [],
         [],
-        []
+        [
+            [100, 50, 20, 1000]
+        ]
     ],
     [
-        [10, 30],
+        [10, 10],
         [300, 300],
+        [
+            [25, 0, 20, 650],
+            [25, 630, 800, 20]
+        ],
         [],
-        [],
-        []
+        [
+            [900, 0, 100, 700]
+        ]
     ],
     [
         [15, 10],
-        [300, 300],
-        [],
-        [],
-        []
-    ],
-    [
-        [20, 10],
-        [300, 300],
-        [],
-        [],
-        []
-    ],
-    [
-        [25, 10],
-        [300, 300],
-        [],
-        [],
-        []
-    ],
-    [
-        [30, 10],
-        [300, 300],
-        [],
-        [],
-        []
-    ],
-    [
-        [35, 35],
-        [300, 300],
-        [],
-        [],
-        []
+        [680, 10],
+        [
+            [0, 250, 100, 20],
+            [150, 170, 20, 400],
+            [50, 320, 100, 20],
+            [0, 390, 100, 20],
+            [50, 460, 100, 20],
+            [0, 530, 100, 20]
+        ],
+        [
+            [0, 0, 1000, 700]
+        ],
+        [
+            [0, 100, 600, 20],
+            [650, 0, 20, 500],
+            [50, 150, 600, 20],
+            [220, 550, 450, 200],
+            [300, 230, 20, 400],
+            [500, 230, 20, 400]
+        ]
     ],
     [
         [105, 105],
@@ -152,15 +153,17 @@ function startTrig() {
 
 function releaseBall() {
     getmousedown = 0
-    if (!getinsand()) {
-        ballvel = [triangleA / 10, triangleB / 10]
-    } else {
-        ballvel = [triangleA / 30, triangleB / 30]
-    }
-
     window.removeEventListener("mousemove", drawline)
     window.addEventListener("mousedown", startTrig)
     window.removeEventListener("mouseup", releaseBall)
+    if (!getInSand()) {
+        ballvel = [triangleA / 10, triangleB / 10]
+        return
+    }
+
+    ballvel = [triangleA / 30, triangleB / 30]
+
+
 }
 
 function drawline() {
@@ -186,21 +189,23 @@ load()
 
 function redraw() {
     ctx.clearRect(0, 0, 1000, 700)
-    ctx.fillStyle = "black"
-    fillCircle(hole[level], holerad)
-        //walls
-    for (i = 0; i < walls[level].length; i++) {
-        ctx.fillStyle = "#A0FFF0"
-        ctx.fillRect(walls[level][i][0], walls[level][i][1], walls[level][i][2], walls[level][i][3])
-    }
-    //sand
+        //sand
+    ctx.fillStyle = "yellow"
     for (i = 0; i < sand[level].length; i++) {
         ctx.fillRect(sand[level][i][0], sand[level][i][1], sand[level][i][2], sand[level][i][3])
     }
     //death
+    ctx.fillStyle = "darkblue"
     for (i = 0; i < death[level].length; i++) {
         ctx.fillRect(death[level][i][0], death[level][i][1], death[level][i][2], death[level][i][3])
     }
+    //walls
+    for (i = 0; i < walls[level].length; i++) {
+        ctx.fillStyle = "#A0FFF0"
+        ctx.fillRect(walls[level][i][0], walls[level][i][1], walls[level][i][2], walls[level][i][3])
+    }
+    ctx.fillStyle = "black"
+    fillCircle(hole[level], holerad)
     ctx.fillStyle = "blue"
     fillCircle(ballcurr, holerad)
 
@@ -218,14 +223,37 @@ function redraw() {
 
 movereps = 0;
 
-function getinsand() {
+function getInSand() {
+    for (i = 0; i < sand[level].length; i++) {
+        Sx = sand[level][i][0]
+        Sy = sand[level][i][1]
+        Sw = sand[level][i][2]
+        Sh = sand[level][i][3]
 
+        if (xmove >= Sx && xmove <= Sx + Sw && ymove >= Sy && ymove <= Sy + Sh) {
+            return true
+        }
+        return false
+
+    }
 }
 
-let vertex = [0, 0]
+function getInDeath() {
+    for (i = 0; i < death[level].length; i++) {
+        Sx = death[level][i][0]
+        Sy = death[level][i][1]
+        Sw = death[level][i][2]
+        Sh = death[level][i][3]
+
+        if (xmove + holerad >= Sx && xmove - holerad <= Sx + Sw && ymove + holerad >= Sy && ymove - holerad <= Sy + Sh) {
+            level--
+            nextlvl()
+        }
+
+    }
+}
 
 function wallbounds() {
-    fix = 0
 
     //wall bounds
     for (i = 0; i < walls[level].length; i++) {
@@ -234,68 +262,24 @@ function wallbounds() {
         Ww = walls[level][i][2]
         Wh = walls[level][i][3]
 
-        vertices = [];
-        //calculate closest vertex
-        for (j = 0; j < 4; j++) {
-            switch (j) {
-                case 0:
-                    vertex = [Wx, Wy]
-                    break;
-                    //console.log(vertex)
-                case 1:
-                    vertex = [Wx + Ww, Wy]
-                    break;
-                    //console.log(vertex)
-                case 2:
-                    vertex = [Wx, Wy + Wh]
-                    break;
-                    //console.log(vertex)
-                case 3:
-                    vertex = [Wx + Ww, Wy + Wh]
-                    break;
-                    //console.log(vertex)
+        wall = Math.min(Math.abs(Wx - xmove), Math.abs(Wy - ymove), Math.abs((Wx + Ww) - xmove), Math.abs((Wy + Wh) - ymove))
 
+        if (xmove + holerad >= Wx && xmove - holerad <= Wx + Ww && ymove + holerad >= Wy && ymove - holerad < Wy + Wh) {
+            if (wall === Math.abs(Wx - xmove) || wall == Math.abs((Wx + Ww) - xmove)) {
+                xvel *= -1
+            } else {
+                if (wall == Math.abs(Wy - ymove) || wall == Math.abs((Wy + Wh) - ymove)) {
+                    yvel *= -1
+
+                } else {
+                    xvel *= -1
+                    yvel *= -1
+
+                }
             }
-            vertices.push(Math.pow(Math.pow(vertex[0] - xmove, 2) + Math.pow(vertex[1] - ymove, 2), 0.5))
+            console.log(wall)
         }
 
-        smol = vertices.splice(vertices.findIndex(function(a) { return a == Math.min(vertices[0], vertices[1], vertices[2], vertices[3]) }), 1)
-        smol1 = vertices.splice(vertices.findIndex(function(a) { return a == Math.min(vertices[0], vertices[1], vertices[2]) }), 1)
-
-        corner1 = 0
-        corner2 = 0
-
-        /*
-            0--------1
-            |        |
-            |        |
-            2--------3
-        */
-
-        smol == Wx ? corner1 = 0 : smol == Wx + Ww ? corner1 = 1 : smol == Wy ? corner1 = 2 : corner1 = 3
-        smol1 == Wx ? corner2 = 0 : smol1 == Wx + Ww ? corner2 = 1 : smol1 == Wy ? corner2 = 2 : corner2 = 3
-
-
-        if (xmove + holerad >= Wx && ymove + holerad >= Wy && xmove - holerad < Wx + Ww && ymove - holerad <= Wy + Wh) {
-
-            switch (corner1 + corner2) {
-                case 1:
-                    yvel *= -1
-                case 2:
-                    xvel *= -1
-                case 5:
-                    yvel *= -1
-                case 4:
-                    xvel *= -1
-            }
-
-            fix = 1
-            console.log("hiii")
-        }
-        //if (xmove >= Wx && ymove + holerad >= Wy && xmove - holerad < Wx + Ww && ymove - holerad <= Wy + Wh && !fix) {
-        //    yvel *= -1
-        //    console.log("hiii")
-        //}
     }
 }
 
@@ -322,6 +306,7 @@ function moveball() {
         }
 
         wallbounds()
+        getInDeath()
 
         //take the x position and y position then find the x dist and y dist from the hole pos then use pythag to find direct distance
 
@@ -358,15 +343,15 @@ function moveball() {
 
 function nextlvl() {
 
-    if (level < 9) {
+    if (level < 5) {
 
         xvel = 0
         yvel = 0
         level++
-        x = 0
-        y = 0
+        x = levels[level][0][0]
+        y = levels[level][0][1]
     } else {
-        level = 10
+        level = 6
         win = true
     }
 
