@@ -1,6 +1,9 @@
 canvas = document.getElementById("canvas")
 ctx = canvas.getContext("2d")
 
+window.addEventListener("keydown", (e)=>{if(e.key=="-"){nextlvl()}})
+
+
 const friction = 2;
 const levelnum = 6;
 const holerad = 10;
